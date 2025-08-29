@@ -20,6 +20,10 @@ export function MainNav() {
       name: "Create Poll",
       href: "/polls/create",
     },
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+    },
   ];
 
   return (
