@@ -3,6 +3,7 @@ import { Inter as FontSans } from "next/font/google";
 import { JetBrains_Mono as FontMono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/contexts/auth-context";
 
 const fontSans = FontSans({
   variable: "--font-sans",
@@ -30,7 +31,9 @@ export default function RootLayout({
         className={`${fontSans.variable} ${fontMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
