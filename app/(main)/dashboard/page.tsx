@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase';
+import { createServerSideClient } from '@/lib/supabase';
 import { getUserPolls } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const supabase = createClient();
+  const supabase = createServerSideClient();
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {

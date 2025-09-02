@@ -1,53 +1,39 @@
-import { createBrowserClient, createServerClient } from '@supabase/ssr';
+import { createServerClient, CookieOptions } from '@supabase/ssr';
+import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
+import { createClient as createLegacyClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
-// For server-side usage (Server Actions, API Routes, etc.)
-export const createClient = async () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase URL and key must be defined');
-  }
-
-  // Dynamically import cookies only when needed on server
-  const { cookies } = await import('next/headers');
-  const cookieStore = cookies();
-
-  return createServerClient(supabaseUrl, supabaseKey, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
+export function createServerSideClient(cookieStore: ReadonlyRequestCookies) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SECRET_KEY!,
+    {
+      cookies: {
+        get: (name: string) => cookieStore.get(name)?.value,
+        set: (name: string, value: string, options: CookieOptions) => {
+          try {
+            cookieStore.set(name, value, options);
+          } catch (error) {
+            // The `cookies().set()` method can only be called in a Server Component or Route Handler.
+            // For more info: https://nextjs.org/docs/app/api-reference/functions/cookies#cookiessetname-value-options
+          }
+        },
+        remove: (name: string, options: CookieOptions) => {
+          try {
+            cookieStore.set(name, '', options);
+          } catch (error) {
+            // The `cookies().set()` method can only be called in a Server Component or Route Handler.
+            // For more info: https://nextjs.org/docs/app/api-reference/functions/cookies#cookiessetname-value-options
+          }
+        },
       },
-      set(name: string, value: string, options: Record<string, unknown>) {
-        try {
-          cookieStore.set({ name, value, ...options });
-        } catch (error) {
-          // The `set` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-      remove(name: string, options: Record<string, unknown>) {
-        try {
-          cookieStore.set({ name, value: '', ...options });
-        } catch (error) {
-          // The `delete` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-    },
-  });
-};
+    }
+  );
+}
 
-// For client-side usage (React components, client-side hooks)
-export const createClientBrowser = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase URL and key must be defined');
-  }
-
-  return createBrowserClient(supabaseUrl, supabaseKey);
-};
+// export function createClientBrowser() {
+//   return createLegacyClient(
+//     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+//   );
+// }

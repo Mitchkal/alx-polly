@@ -1,13 +1,20 @@
-import { createClient } from './supabase';
+import { createServerSideClient } from './supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { CreatePollInput, Poll, PollOption, PollResult, PollWithOptions, PollWithOptionsAndResults, Vote, VoteInput } from './types';
+import { cookies } from 'next/headers';
 
-// Initialize Supabase client
-const supabase = createClient();
+// Remove the global initialization of cookieStore and supabase client
+// const cookieStore = cookies();
+// const supabase = createServerSideClient(cookieStore);
 
 /**
  * Create a new poll with options
  */
-export async function createPoll(input: CreatePollInput, userId: string): Promise<Poll | null> {
+export async function createPoll(
+  input: CreatePollInput,
+  userId: string,
+  supabase: SupabaseClient // Accept supabase client as a parameter
+): Promise<Poll | null> {
   // Start a transaction
   const { data: poll, error: pollError } = await supabase
     .from('polls')
@@ -50,7 +57,10 @@ export async function createPoll(input: CreatePollInput, userId: string): Promis
 /**
  * Get a poll by ID with its options
  */
-export async function getPollWithOptions(pollId: string): Promise<PollWithOptions | null> {
+export async function getPollWithOptions(
+  pollId: string,
+  supabase: SupabaseClient // Accept supabase client as a parameter
+): Promise<PollWithOptions | null> {
   // Get the poll
   const { data: poll, error: pollError } = await supabase
     .from('polls')
@@ -83,8 +93,11 @@ export async function getPollWithOptions(pollId: string): Promise<PollWithOption
 /**
  * Get a poll with options and results
  */
-export async function getPollWithOptionsAndResults(pollId: string): Promise<PollWithOptionsAndResults | null> {
-  const pollWithOptions = await getPollWithOptions(pollId);
+export async function getPollWithOptionsAndResults(
+  pollId: string,
+  supabase: SupabaseClient // Accept supabase client as a parameter
+): Promise<PollWithOptionsAndResults | null> {
+  const pollWithOptions = await getPollWithOptions(pollId, supabase); // Pass supabase client
   
   if (!pollWithOptions) {
     return null;
@@ -113,7 +126,8 @@ export async function getPollWithOptionsAndResults(pollId: string): Promise<Poll
 export async function voteOnPoll(
   input: VoteInput,
   userId: string | null,
-  ipAddress: string | null
+  ipAddress: string | null,
+  supabase: SupabaseClient // Accept supabase client as a parameter
 ): Promise<boolean> {
   // Check if the poll exists
   const { data: poll, error: pollError } = await supabase
@@ -164,7 +178,7 @@ export async function voteOnPoll(
 /**
  * Get all polls for a user
  */
-export async function getUserPolls(userId: string): Promise<Poll[]> {
+export async function getUserPolls(userId: string, supabase: SupabaseClient): Promise<Poll[]> {
   const { data, error } = await supabase
     .from('polls')
     .select('*')
@@ -182,7 +196,7 @@ export async function getUserPolls(userId: string): Promise<Poll[]> {
 /**
  * Get public polls
  */
-export async function getPublicPolls(limit = 10, offset = 0): Promise<Poll[]> {
+export async function getPublicPolls(supabase: SupabaseClient, limit = 10, offset = 0): Promise<Poll[]> {
   const { data, error } = await supabase
     .from('polls')
     .select('*')
@@ -201,7 +215,7 @@ export async function getPublicPolls(limit = 10, offset = 0): Promise<Poll[]> {
 /**
  * Delete a poll
  */
-export async function deletePoll(pollId: string, userId: string): Promise<boolean> {
+export async function deletePoll(supabase: SupabaseClient, pollId: string, userId: string): Promise<boolean> {
   // Check if the user owns the poll
   const { data: poll, error: pollError } = await supabase
     .from('polls')
