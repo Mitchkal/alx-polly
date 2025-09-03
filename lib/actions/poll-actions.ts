@@ -1,9 +1,10 @@
 'use server';
 
-import { cookies } from 'next/headers';
+
 import { redirect } from 'next/navigation';
 import { SupabaseClient } from '@supabase/supabase-js';
 
+import { cookies } from 'next/headers';
 import { createServerSideClient } from '../supabase';
 import {
   createPoll,
@@ -16,13 +17,13 @@ import {
 } from '../db';
 import { CreatePollInput, PollWithOptionsAndResults, VoteInput } from '../types';
 
-const cookieStore = cookies();
+
 
 /**
  * Create a new poll with options
  */
 export async function createPollAction(formData: FormData) {
-  const supabase = createServerSideClient(cookieStore);
+  const supabase = createServerSideClient();
   
   // Get the current session
   const { data: { session } } = await supabase.auth.getSession();
@@ -78,7 +79,7 @@ export async function createPollAction(formData: FormData) {
  * Vote on a poll
  */
 export async function voteOnPollAction(formData: FormData) {
-  const supabase = createServerSideClient(cookies());
+  const supabase = createServerSideClient();
   
   // Get the current session
   const { data: { session } } = await supabase.auth.getSession();
@@ -124,7 +125,7 @@ export async function getPollAction(pollId: string): Promise<{ poll: PollWithOpt
   if (!pollId) {
     return { poll: null, error: 'Poll ID is required' };
   }
-  const supabase = createServerSideClient(cookies());
+  const supabase = createServerSideClient();
   
   const poll = await getPollWithOptionsAndResults(pollId, supabase);
   
@@ -139,7 +140,7 @@ export async function getPollAction(pollId: string): Promise<{ poll: PollWithOpt
  * Delete a poll
  */
 export async function deletePollAction(formData: FormData) {
-  const supabase = createServerSideClient(cookies());
+  const supabase = createServerSideClient();
 
   const pollId = formData.get('poll_id') as string;
 

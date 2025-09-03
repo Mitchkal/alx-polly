@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { createClientBrowser } from '@/lib/supabase-browser';
 import { deletePoll } from '@/lib/db';
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
     
     // Get user session
-    const supabase = createClient();
+    const supabase = createClientBrowser();
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
     
     // Delete poll
-    const success = await deletePoll(pollId, session.user.id);
+    const success = await deletePoll(supabase, pollId, session.user.id);
     
     if (!success) {
       return NextResponse.json(

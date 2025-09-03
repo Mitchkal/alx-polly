@@ -3,7 +3,8 @@ import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adap
 import { createClient as createLegacyClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
-export function createServerSideClient(cookieStore: ReadonlyRequestCookies) {
+export function createServerSideClient() {
+  const cookieStore = cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SECRET_KEY!,
@@ -13,13 +14,12 @@ export function createServerSideClient(cookieStore: ReadonlyRequestCookies) {
         set: (name: string, value: string, options: CookieOptions) => {
           try {
             cookieStore.set(name, value, options);
-          } catch (error) {
-            // The `cookies().set()` method can only be called in a Server Component or Route Handler.
-            // For more info: https://nextjs.org/docs/app/api-reference/functions/cookies#cookiessetname-value-options
-          }
-        },
-        remove: (name: string, options: CookieOptions) => {
-          try {
+    } catch (error) {
+      console.warn('Could not set cookie', name, error);
+    }
+  },
+  remove: (name: string, options: CookieOptions) => {
+    try {
             cookieStore.set(name, '', options);
           } catch (error) {
             // The `cookies().set()` method can only be called in a Server Component or Route Handler.
@@ -30,10 +30,3 @@ export function createServerSideClient(cookieStore: ReadonlyRequestCookies) {
     }
   );
 }
-
-// export function createClientBrowser() {
-//   return createLegacyClient(
-//     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-//   );
-// }

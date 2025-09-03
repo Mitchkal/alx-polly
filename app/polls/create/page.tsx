@@ -120,15 +120,7 @@ export default function CreatePollPage() {
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit} noValidate>
-          {/* Add this debug button temporarily */}
-          <div style={{ marginBottom: '10px' }}>
-            <Button
-              type='button'
-              onClick={() => console.log('Test button clicked')}
-            >
-              Test Console Log
-            </Button>
-          </div>
+
           <CardContent className='space-y-6'>
             <div className='space-y-2'>
               <Label htmlFor='title'>Poll Title</Label>

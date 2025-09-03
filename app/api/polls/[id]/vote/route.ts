@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createClient } from '@/lib/supabase';
+import { createClientBrowser } from '@/lib/supabase-browser';
 import { voteOnPoll } from '@/lib/db';
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
     
     // Get user session
-    const supabase = createClient();
+    const supabase = createClientBrowser();
     const { data: { session } } = await supabase.auth.getSession();
     
     // Get IP address from request
@@ -40,7 +40,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const success = await voteOnPoll(
       { poll_id: pollId, option_id: optionId },
       session?.user.id || null,
-      ipAddress
+      ipAddress,
+      supabase
     );
     
     if (!success) {

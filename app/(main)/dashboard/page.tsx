@@ -20,7 +20,7 @@ export default async function DashboardPage() {
     redirect('/login');
   }
   
-  const polls = await getUserPolls(session.user.id);
+  const polls = await getUserPolls(session.user.id, supabase);
   
   return (
     <div className="container py-10">
