@@ -114,8 +114,8 @@ export async function voteOnPollAction(formData: FormData) {
     return { error: 'Failed to submit vote' };
   }
   
-  // Redirect to the poll results
-  redirect(`/polls/${pollId}/results`);
+  // Return success to client, client will handle redirect
+  return { success: true };
 }
 
 /**

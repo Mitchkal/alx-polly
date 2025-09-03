@@ -190,6 +190,10 @@ export async function getUserPolls(userId: string, supabase: SupabaseClient): Pr
     return [];
   }
 
+  if (error) {
+    console.error('Error fetching user polls:', error);
+    return [];
+  }
   return data || [];
 }
 

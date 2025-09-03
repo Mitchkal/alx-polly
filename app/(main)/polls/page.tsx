@@ -1,23 +1,22 @@
-import { Metadata } from "next";
-import { PollList } from "@/components/polls/poll-list";
+import { Metadata } from 'next';
+import { PollList } from '@/components/polls/poll-list';
+import { getPollsAction } from '@/lib/actions';
 
 export const metadata: Metadata = {
-  title: "Polls",
-  description: "View and vote on polls",
+  title: 'Polls',
+  description: 'View all polls',
 };
 
-export default function PollsPage() {
+export default async function PollsPage() {
+  const { data: polls, error } = await getPollsAction();
+
+  if (error) {
+    return <p>Error loading polls: {error.message}</p>;
+  }
+
   return (
     <div className="container py-10">
-      <div className="flex flex-col space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Polls</h1>
-          <p className="text-muted-foreground">
-            Browse and vote on polls created by the community
-          </p>
-        </div>
-        <PollList />
-      </div>
+      <PollList polls={polls} />
     </div>
   );
 }

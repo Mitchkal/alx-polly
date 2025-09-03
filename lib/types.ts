@@ -5,11 +5,13 @@ export interface Poll {
   title: string;
   description: string | null;
   user_id: string;
+  created_by?: string; // Add created_by
   is_public: boolean;
   allow_multiple_votes: boolean;
   created_at: string;
   updated_at: string;
   expires_at: string | null;
+  votes_count?: number; // Add votes_count
 }
 
 export interface PollOption {
