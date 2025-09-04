@@ -86,53 +86,25 @@ export function PollDetail({ id }: PollDetailProps) {
       
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{poll.title}</CardTitle>
+          <CardTitle className="text-2xl">{poll?.title}</CardTitle>
           <CardDescription>
-            Created by {poll.created_by} on {new Date(poll.created_at).toLocaleDateString()}
+            Created by {poll?.created_by} on {new Date(poll.created_at).toLocaleDateString()}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <p className="text-muted-foreground">{poll.description}</p>
+          <p className="text-muted-foreground">{poll?.description}</p>
           
           <div className="space-y-4">
-            {poll.options.map((option) => {
-              const optionResult = poll.results.find(result => result.option_id === option.id);
-              const votesForOption = optionResult ? optionResult.vote_count : 0;
-              const totalVotes = poll.results.reduce((sum, result) => sum + result.vote_count, 0);
-              const percentage = totalVotes === 0 ? 0 : Math.round((votesForOption / totalVotes) * 100) || 0;
-              
-              return (
-                <div key={option.id} className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      id={option.id}
-                      name="poll-option"
-                      value={option.id}
-                      disabled={hasVoted}
-                      checked={selectedOption === option.id}
-                      onChange={() => setSelectedOption(option.id)}
-                      className="h-4 w-4 border-primary text-primary focus:ring-primary"
-                    />
-                    <label htmlFor={option.id} className="text-sm font-medium">
-                      {option.text}
-                    </label>
-                  </div>
-                  
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                    <div
-                      className="h-full bg-primary"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                  
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{votesForOption} votes</span>
-                    <span>{percentage}%</span>
-                  </div>
-                </div>
-              );
-            })}
+            {poll?.options.map((option) => (
+              <PollOptionDisplay
+                key={option.id}
+                option={option}
+                pollResults={poll.results}
+                hasVoted={hasVoted}
+                selectedOption={selectedOption}
+                onSelectOption={setSelectedOption}
+              />
+            ))}
           </div>
         </CardContent>
         <CardFooter>
@@ -145,6 +117,56 @@ export function PollDetail({ id }: PollDetailProps) {
           </Button>
         </CardFooter>
       </Card>
+    </div>
+  );
+}
+
+interface PollOptionDisplayProps {
+  option: PollOption;
+  pollResults: PollWithOptionsAndResults['results'];
+  hasVoted: boolean;
+  selectedOption: string | null;
+  onSelectOption: (optionId: string) => void;
+}
+
+function PollOptionDisplay({
+  option,
+  pollResults,
+  hasVoted,
+  selectedOption,
+  onSelectOption,
+}: PollOptionDisplayProps) {
+  const optionResult = pollResults.find((result) => result.option_id === option.id);
+  const votesForOption = optionResult ? optionResult.vote_count : 0;
+  const totalVotes = pollResults.reduce((sum, result) => sum + result.vote_count, 0);
+  const percentage = totalVotes === 0 ? 0 : Math.round((votesForOption / totalVotes) * 100) || 0;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="radio"
+          id={option.id}
+          name="poll-option"
+          value={option.id}
+          disabled={hasVoted}
+          checked={selectedOption === option.id}
+          onChange={() => onSelectOption(option.id)}
+          className="h-4 w-4 border-primary text-primary focus:ring-primary"
+        />
+        <label htmlFor={option.id} className="text-sm font-medium">
+          {option.text}
+        </label>
+      </div>
+
+      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+        <div className="h-full bg-primary" style={{ width: `${percentage}%` }} />
+      </div>
+
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{votesForOption} votes</span>
+        <span>{percentage}%</span>
+      </div>
     </div>
   );
 }
