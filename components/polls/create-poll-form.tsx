@@ -18,9 +18,42 @@ import { createPollAction } from '@/lib/actions/poll-actions';
 import { toast } from '@/components/ui/use-toast';
 // REMOVE THIS LINE: import { redirect } from "next/navigation";
 
+/**
+ * CreatePollForm Component
+ *
+ * This component provides a form for users to create new polls in the Polling App.
+ * It handles dynamic option management, form submission via Server Actions, and user feedback.
+ *
+ * Why: Enables authenticated users to generate polls with multiple options, which are stored in Supabase.
+ * This promotes user engagement by allowing content creation and sharing.
+ *
+ * Assumptions:
+ * - User is authenticated via Supabase Auth (handled in parent components or middleware).
+ * - Network connection is available for Server Action calls.
+ * - Minimum of 2 options required for a valid poll.
+ *
+ * Edge Cases:
+ * - Attempting to remove options below 2 is prevented.
+ * - Empty title or options trigger form validation.
+ * - Server errors (e.g., duplicate polls, network issues) display toast notifications.
+ * - Loading states disable inputs to prevent multiple submissions.
+ *
+ * Connections:
+ * - Uses createPollAction from '@/lib/actions/poll-actions' for backend submission.
+ * - Integrates shadcn/ui components (Button, Input, Card, etc.) for consistent UI.
+ * - Toast notifications from use-toast for user feedback.
+ * - Redirects to poll list or detail page upon success via Next.js navigation.
+ */
 export function CreatePollForm() {
+  // State for loading indicator during submission
+  // Why: Prevents multiple submissions and provides user feedback
   const [isLoading, setIsLoading] = useState(false);
+  // State for managing poll options dynamically
+  // Assumptions: Starts with 2 options; users can add/remove
+  // Edge Cases: Enforces minimum 2 options
   const [options, setOptions] = useState<string[]>(['Option 1', 'Option 2']);
+  // State for error messages from submission
+  // Why: Displays server-side errors to user
   const [error, setError] = useState<string | null>(null);
 
   const addOption = () => {
@@ -39,19 +72,27 @@ export function CreatePollForm() {
   };
 
   async function onSubmit(event: React.FormEvent) {
+    // Prevent default form submission
+    // Why: Allows custom handling with Server Actions
     event.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
+      // Extract form data
+      // Assumptions: Form fields match expected names
       const form = event.target as HTMLFormElement;
       const formData = new FormData(form);
-      // Add options to form data as option-1, option-2, ...
+      // Append options to form data
+      // Why: Server Action expects options as form fields
       options.forEach((option, index) => {
         formData.append(`option-${index + 1}`, option);
       });
-      // Call the Server Action
+      // Call Server Action
+      // Connections: Integrates with createPollAction for database insertion
       const result = await createPollAction(formData);
       if (result?.error) {
+        // Handle errors from action
+        // Edge Cases: Validation failures, database errors
         setError(result.error);
         toast({
           title: 'Error',
@@ -59,21 +100,22 @@ export function CreatePollForm() {
           variant: 'destructive',
         });
       } else {
-        // If no error, Next.js will redirect automatically via the Server Action
+        // Success handling
+        // Why: Provides feedback before potential redirect
         toast({
           title: 'Success!',
           description: 'Your poll has been created.',
         });
       }
     } catch (err) {
-      // Handle Next.js redirect error
+      // Catch unexpected errors
+      // Edge Cases: Network failures, redirect handling
       if (
         err &&
         typeof err === 'object' &&
         'digest' in err &&
         err.digest === 'NEXT_REDIRECT'
       ) {
-        // Show success toast before redirect
         toast({
           title: 'Success!',
           description: 'Your poll has been created.',

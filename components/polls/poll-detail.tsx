@@ -10,13 +10,49 @@ interface PollDetailProps {
   id: string;
 }
 
+/**
+ * PollDetail Component
+ *
+ * This component fetches and displays detailed information for a specific poll,
+ * including options for voting if the user hasn't voted yet.
+ *
+ * Why: Provides an interactive view for users to vote on polls, showing real-time results.
+ * Enhances user engagement by allowing participation and immediate feedback.
+ *
+ * Assumptions:
+ * - Poll ID is valid and exists in Supabase.
+ * - User may or may not have voted (checked via localStorage for simplicity).
+ * - Network availability for fetching and voting actions.
+ *
+ * Edge Cases:
+ * - Poll not found or fetch errors display error messages.
+ * - User already voted disables voting UI.
+ * - No options or zero votes handled in percentage calculations.
+ * - Loading states show placeholders to improve UX.
+ *
+ * Connections:
+ * - Uses getPollAction and voteOnPollAction from '@/lib/actions/poll-actions' for data fetching and mutations.
+ * - Integrates with PollOptionDisplay sub-component for modular option rendering.
+ * - Uses shadcn/ui components (Button, Card) for consistent styling.
+ * - Redirects to results page after voting via window.location.
+ */
 export function PollDetail({ id }: PollDetailProps) {
+  // State for storing fetched poll data
+  // Why: Holds poll details for rendering
   const [poll, setPoll] = useState<PollWithOptionsAndResults | null>(null);
+  // State for selected voting option
+  // Assumptions: Only one option can be selected
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  // State tracking if user has voted
+  // Edge Cases: Persists via localStorage to prevent multiple votes
   const [hasVoted, setHasVoted] = useState(false);
+  // Loading state for fetch operations
   const [loading, setLoading] = useState(true);
+  // Error state for fetch/vote failures
   const [error, setError] = useState<string | null>(null);
 
+  // Callback for fetching poll data
+  // Why: Encapsulates fetch logic for reuse (e.g., after voting)
   const fetchPoll = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -26,8 +62,8 @@ export function PollDetail({ id }: PollDetailProps) {
         throw new Error(error);
       }
       setPoll(fetchedPoll);
-      // Check if user has already voted based on IP (simplified for client-side check)
-      // In a real app, this would be determined by server-side logic or user session
+      // Simplified client-side vote check
+      // Assumptions: localStorage available; not secure for production
       const voted = localStorage.getItem(`voted_on_poll_${id}`);
       if (voted) {
         setHasVoted(true);
@@ -56,10 +92,12 @@ export function PollDetail({ id }: PollDetailProps) {
         throw new Error(error);
       }
 
-      // To get updated results, re-fetch the poll
+      // Re-fetch for updated results
       await fetchPoll();
       setHasVoted(true);
       localStorage.setItem(`voted_on_poll_${id}`, "true");
+      // Redirect to results
+      // Connections: Links to results page for post-vote view
       window.location.href = `/polls/${poll.id}/results`;
     } catch (e: any) {
       setError(e.message);
@@ -129,6 +167,26 @@ interface PollOptionDisplayProps {
   onSelectOption: (optionId: string) => void;
 }
 
+/**
+ * PollOptionDisplay Sub-Component
+ *
+ * Renders individual poll options with voting radio and result progress bar.
+ *
+ * Why: Modularizes option display for reusability within PollDetail.
+ * Calculates and shows vote percentages visually.
+ *
+ * Assumptions:
+ * - Poll results are provided and match options.
+ * - Total votes calculated externally.
+ *
+ * Edge Cases:
+ * - Zero total votes shows 0%.
+ * - Disabled when voted.
+ *
+ * Connections:
+ * - Uses types PollOption and PollWithOptionsAndResults['results'].
+ * - Integrates shadcn/ui Progress for visual feedback.
+ */
 function PollOptionDisplay({
   option,
   pollResults,
@@ -136,8 +194,11 @@ function PollOptionDisplay({
   selectedOption,
   onSelectOption,
 }: PollOptionDisplayProps) {
+  // Find votes for this option
   const optionResult = pollResults.find((result) => result.option_id === option.id);
   const votesForOption = optionResult ? optionResult.vote_count : 0;
+  // Calculate total votes
+  // Edge Cases: Avoid division by zero
   const totalVotes = pollResults.reduce((sum, result) => sum + result.vote_count, 0);
   const percentage = totalVotes === 0 ? 0 : Math.round((votesForOption / totalVotes) * 100) || 0;
 

@@ -1,24 +1,72 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Polling App with QR Code Sharing
 
-First, run the development server:
+## Project Overview
+
+This is a web application built with Next.js that allows users to create polls, share them via unique links or QR codes, and vote on them. It features user authentication, poll management, and real-time voting.
+
+## Tech Stack
+
+- **Framework**: Next.js (App Router)
+- **Database & Auth**: Supabase
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **QR Code Generation**: qrcode.react
+- **Language**: TypeScript
+
+## Setup
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd alx-polly
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up Supabase:
+   - Create a Supabase project at [supabase.com](https://supabase.com).
+   - Note your Project URL and Anon Key.
+   - Set up the database schema using the SQL in `/supabase/schema.sql`.
+
+4. Configure environment variables:
+   Create a `.env.local` file in the root:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   ```
+
+## Running Locally
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To run tests:
+```bash
+npm test
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Usage Examples
+
+### Creating a Poll
+1. Register/Login to your account.
+2. Navigate to 'Create Poll'.
+3. Fill in title, description, and options.
+4. Submit to create and get sharing options.
+
+### Voting on a Poll
+1. Access via shared link or QR code.
+2. Select an option and vote.
+3. View results if allowed.
 
 ## Learn More
 

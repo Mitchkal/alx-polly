@@ -22,6 +22,11 @@ export interface PollOption {
   updated_at: string;
 }
 
+export interface PollShareProps {
+  pollId: string;
+  pollTitle: string;
+}
+
 export interface Vote {
   id: string;
   poll_id: string;

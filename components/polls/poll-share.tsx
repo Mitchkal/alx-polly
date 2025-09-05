@@ -7,17 +7,48 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Share, Copy, Download, Check } from 'lucide-react';
 
-interface PollShareProps {
-  pollId: string;
-  pollTitle: string;
-}
+import { PollShareProps } from '@/lib/types';
 
+/**
+ * PollShare Component
+ *
+ * This component provides sharing functionality for a poll via URL and QR code,
+ * with options to copy the link and download the QR code.
+ *
+ * Why: Enables easy distribution of polls, increasing participation by allowing
+ * users to share unique poll links or scannable QR codes.
+ *
+ * Assumptions:
+ * - Running in a browser environment with access to window.location and navigator.clipboard.
+ * - QRCodeSVG library is installed and imported correctly.
+ *
+ * Edge Cases:
+ * - Clipboard API not supported or permission denied triggers console error.
+ * - Server-side rendering: pollUrl falls back to relative path.
+ * - Empty pollId or pollTitle: Component still renders but with incomplete data.
+ *
+ * Connections:
+ * - Uses PollShareProps from '@/lib/types' for prop typing.
+ * - Integrates qrcode.react for QR generation.
+ * - Employs shadcn/ui components for consistent UI.
+ * - Lucide icons for visual elements.
+ * - Typically used alongside PollDetail for post-creation sharing.
+ */
 export function PollShare({ pollId, pollTitle }: PollShareProps) {
+  // State for copy feedback
+  // Why: Provides user feedback on successful copy
   const [copied, setCopied] = useState(false);
+
+  // Generate poll URL
+  // Assumptions: window is available client-side
+  // Edge Cases: SSR fallback to relative URL
   const pollUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/polls/${pollId}`
     : `/polls/${pollId}`;
 
+  // Handle link copying
+  // Why: Allows easy sharing via clipboard
+  // Edge Cases: Handles copy failures gracefully
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(pollUrl);
@@ -28,6 +59,10 @@ export function PollShare({ pollId, pollTitle }: PollShareProps) {
     }
   };
 
+  // Handle QR code download as PNG
+  // Why: Provides offline sharing option
+  // Assumptions: Browser supports canvas and image manipulation
+  // Edge Cases: SVG not found prevents download
   const handleDownloadQR = () => {
     const svg = document.getElementById('poll-qr-code');
     if (!svg) return;
