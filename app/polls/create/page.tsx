@@ -21,7 +21,7 @@ import { createPollAction } from '@/lib/actions/poll-actions';
 export default function CreatePollPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [options, setOptions] = useState<string[]>(['Option 1', 'Option 2']);
+  const [options, setOptions] = useState<string[]>(['', '']);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!user) {
@@ -29,7 +29,7 @@ export default function CreatePollPage() {
   }
 
   const addOption = () => {
-    setOptions([...options, `Option ${options.length + 1}`]);
+    setOptions([...options, '']);
   };
 
   const removeOption = (index: number) => {
@@ -120,7 +120,6 @@ export default function CreatePollPage() {
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit} noValidate>
-
           <CardContent className='space-y-6'>
             <div className='space-y-2'>
               <Label htmlFor='title'>Poll Title</Label>
