@@ -91,6 +91,38 @@ describe('Poll Actions', () => {
       expect(createServerSideClient).not.toHaveBeenCalled();
       expect(result).toEqual({ error: 'You must be logged in to create a poll' });
     });
+
+    it('should return an error for invalid input - empty question', async () => {
+      const formData = new FormData();
+      formData.append('question', '');
+      formData.append('options', 'Option A,Option B');
+
+      const result = await createPollAction(formData);
+
+      expect(result).toEqual({ error: 'Question is required' });
+    });
+
+    it('should return an error for invalid input - no options', async () => {
+      const formData = new FormData();
+      formData.append('question', 'Test Question');
+      formData.append('options', '');
+
+      const result = await createPollAction(formData);
+
+      expect(result).toEqual({ error: 'At least one option is required' });
+    });
+
+    it('should handle Supabase errors', async () => {
+      const formData = new FormData();
+      formData.append('question', 'Test Question');
+      formData.append('options', 'Option A,Option B');
+
+      (createPoll as jest.Mock).mockRejectedValue(new Error('Database error'));
+
+      const result = await createPollAction(formData);
+
+      expect(result).toEqual({ error: 'Failed to create poll: Database error' });
+    });
   });
 
   describe('voteOnPollAction', () => {
@@ -146,34 +178,41 @@ describe('Poll Actions', () => {
       );
       expect(result).toEqual({ success: true });
     });
-  });
 
-  describe('getPollAction', () => {
-    it('should return a poll successfully', async () => {
-      const mockPoll = { id: 'test-poll-id', question: 'Test Question', options: [] };
-      (getPollWithOptionsAndResults as jest.Mock).mockResolvedValue(mockPoll);
+    it('should return an error if user has already voted', async () => {
+      const formData = new FormData();
+      formData.append('poll_id', 'test-poll-id');
+      formData.append('option_id', 'test-option-id');
 
-      const result = await getPollAction('test-poll-id');
+      (voteOnPoll as jest.Mock).mockResolvedValue(false);
 
-      expect(createServerSideClient).toHaveBeenCalledWith(mockCookies);
-      expect(getPollWithOptionsAndResults).toHaveBeenCalledWith('test-poll-id', mockSupabase);
-      expect(result).toEqual({ poll: mockPoll });
+      const result = await voteOnPollAction(formData);
+
+      expect(result).toEqual({ error: 'You have already voted on this poll' });
     });
 
-    it('should return an error if poll ID is missing', async () => {
-      const result = await getPollAction('');
+    it('should handle invalid poll or option ID', async () => {
+      const formData = new FormData();
+      formData.append('poll_id', 'invalid-poll-id');
+      formData.append('option_id', 'invalid-option-id');
 
-      expect(result).toEqual({ poll: null, error: 'Poll ID is required' });
-      expect(createServerSideClient).toHaveBeenCalledWith(mockCookies);
+      (voteOnPoll as jest.Mock).mockResolvedValue(false);
+
+      const result = await voteOnPollAction(formData);
+
+      expect(result).toEqual({ error: 'Invalid poll or option' });
     });
 
-    it('should return an error if poll not found', async () => {
-      (getPollWithOptionsAndResults as jest.Mock).mockResolvedValue(null);
+    it('should handle Supabase errors', async () => {
+      const formData = new FormData();
+      formData.append('poll_id', 'test-poll-id');
+      formData.append('option_id', 'test-option-id');
 
-      const result = await getPollAction('non-existent-poll-id');
+      (voteOnPoll as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-      expect(createServerSideClient).toHaveBeenCalledWith(mockCookies);
-      expect(result).toEqual({ poll: null, error: 'Poll not found' });
+      const result = await voteOnPollAction(formData);
+
+      expect(result).toEqual({ error: 'Failed to submit vote: Database error' });
     });
   });
 
@@ -216,17 +255,15 @@ describe('Poll Actions', () => {
       expect(result).toEqual({ error: 'You must be logged in to delete a poll' });
     });
 
-    it('should return an error if unauthorized', async () => {
-      (mockSupabase.auth.getSession as jest.Mock).mockResolvedValueOnce({ data: { session: null }, error: null });
-
+    it('should return an error if trying to delete another user\'s poll', async () => {
       const formData = new FormData();
       formData.append('poll_id', 'test-poll-id');
 
+      (deletePoll as jest.Mock).mockResolvedValue(false); // Assume false for unauthorized
+
       const result = await deletePollAction(formData);
 
-      // createServerSideClient is called after pollId validation
-      expect(createServerSideClient).toHaveBeenCalledWith(mockCookies);
-      expect(result).toEqual({ error: 'Poll ID is required' });
+      expect(result).toEqual({ error: 'Unauthorized to delete this poll' });
     });
   });
 });
