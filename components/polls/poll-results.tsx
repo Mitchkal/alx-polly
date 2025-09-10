@@ -3,10 +3,13 @@
 import { PollResult, PollWithOptionsAndResults } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface PollResultsProps {
   poll: PollWithOptionsAndResults;
 }
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1919'];
 
 /**
  * PollResults Component
@@ -39,6 +42,11 @@ export function PollResults({ poll }: PollResultsProps) {
   // Why: Displays most popular options first
   const sortedResults = [...poll.results].sort((a, b) => b.vote_count - a.vote_count);
   
+  const chartData = sortedResults.map(result => ({
+    name: result.option_text,
+    value: result.vote_count,
+  }));
+  
   return (
     <Card>
       <CardHeader>
@@ -51,6 +59,30 @@ export function PollResults({ poll }: PollResultsProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {totalVotes > 0 && (
+          <div className="mb-6 h-60">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  nameKey="name"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
         <div className="space-y-4">
           {sortedResults.map((result) => {
             // Calculate percentage
