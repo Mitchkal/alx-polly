@@ -7,7 +7,7 @@ export default function PollNotFound() {
       <div className="max-w-md mx-auto text-center">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Poll Not Found</h1>
         <p className="text-muted-foreground mb-6">
-          The poll you're looking for doesn't exist or has been removed.
+          The poll you&apos;re looking for doesn&apos;t exist or has been removed.
         </p>
         <div className="flex justify-center space-x-4">
           <Button asChild>

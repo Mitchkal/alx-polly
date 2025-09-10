@@ -62,7 +62,7 @@ export default async function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">My Polls</h1>
             <p className="text-muted-foreground">
-              Manage polls you've created
+              Manage polls you&apos;ve created
             </p>
           </div>
           <Button asChild>
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
           // Handle no polls case
           // Why: Guides user to create first poll
           <div className="text-center py-10">
-            <h2 className="text-xl font-semibold mb-2">You haven't created any polls yet</h2>
+            <h2 className="text-xl font-semibold mb-2">You haven&apos;t created any polls yet</h2>
             <p className="text-muted-foreground mb-6">Create your first poll to get started</p>
             <Button asChild>
               <Link href="/polls/create">
